@@ -1,7 +1,5 @@
 import java.util.Iterator;
-
-
-
+import java.util.NoSuchElementException;
 
 
 public class SimpleHashSet implements SimpleSet {
@@ -98,5 +96,95 @@ public class SimpleHashSet implements SimpleSet {
         return new SimpleHashSetIterator();
     }
 
+    @Override
+    public int size(){
+        return size;
+    }
+
+    @Override
+    public String toString(){
+        Entry currentEntry = null;
+        StringBuffer sb = new StringBuffer();
+        //loop through the array
+        for (int index=0;index<buckets.length;index++){
+            if(buckets[index] != null){
+                currentEntry = buckets[index];
+                sb.append("[" + index + "]");
+                sb.append(" "+ currentEntry.key.toString());
+                while (currentEntry.next != null){
+                    currentEntry = currentEntry.next;
+                    sb.append(" ->" + currentEntry.key.toString());
+                }
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    public class SimpleHashSetIterator implements Iterator{
+
+        private int currentBucket;
+        private int previousBucket;
+        private Entry currentEntry;
+        private Entry previousEntry;
+
+        public SimpleHashSetIterator(){
+            currentEntry = null;
+            previousEntry = null;
+            currentBucket = -1;
+            previousBucket = -1;
+        }
+
+        @Override
+        public boolean hasNext(){
+            //currentEntry node has next
+            if(currentEntry != null && currentEntry.next != null){
+                return true;
+            }
+
+            //there are still nodes
+            for(int index = currentBucket+1; index <buckets.length; index++){
+                if (buckets[index] != null) {
+                    return true;
+                }
+            }
+
+            //nothing left
+            return false;
+        }
+
+        @Override
+        public Object next(){
+            previousEntry = currentEntry;
+            previousBucket = currentBucket;
+
+            // if either the current or next node are null
+            if(currentEntry == null || currentEntry.next == null){
+                //go to the next bucket
+                currentBucket++;
+                //keep going until you find a bucket with a node
+                while(buckets[currentBucket] == null && currentBucket<buckets.length){
+                    //go to the next bucket
+                    currentBucket++;
+                }
+                if(currentBucket < buckets.length){
+                    currentEntry =buckets[currentBucket];
+                }
+                //otherwise there are no more elements in the bucket
+                else{
+                    throw new NoSuchElementException();
+                }
+            }
+            else{
+                currentEntry = currentEntry.next;
+            }
+            //return the element in the current node
+            return currentEntry.key;
+        }
+
+        public int size(){
+            return size;
+        }
+    }
 
 }
